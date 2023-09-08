@@ -44,17 +44,13 @@ async function fetchRepo() {
     Deno.exit(1);
   }
 
-  const cmd = new Deno.Command('git', {
+  const clone = new Deno.Command('git', {
     args: ["clone", gitUrl, destination],
     stdout: "piped",
     stderr: "piped",
-  });
-  const { code, stdout, stderr } = await cmd.output();
-  if (code === 0) {
-    console.info(new TextDecoder().decode(stdout));
-  } else {
-    console.error(new TextDecoder().decode(stderr));
-  }
+  }).output();
+  printCommandResult(await clone);
+  console.log('[repofe:clone]', gitUrl, '->', destination);
 }
 
 function printCommandResult(output: Deno.CommandOutput) {
