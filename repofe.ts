@@ -66,7 +66,6 @@ async function connectRepo(dir: string, preferredName?: string) {
     console.error("[repofe] REPOFE_OWNER_ROOT is not set");
     Deno.exit(1);
   }
-  // const info = getRepoInfo(input);
   const repoName = preferredName ?? dir.slice().split('/').pop();
   const destination = join(OWNER_ROOT as string, repoName as string);
   const origin = `https://github.com/${OWNER}/${repoName}`;
