@@ -1,6 +1,6 @@
 # repofe
 
-Simple github repository fetcher
+Simple github repository fetcher inspired by ghq
 
 ## Install
 
@@ -23,7 +23,6 @@ export REPOFE_OWNER_ROOT=$HOME/mizchi
 ```bash
 $ repofe https://github.com/github/Spoon-Knife # => ~/repo/github/Spoon-Knife
 $ repofe github/Spoon-Knife # same
-
 # clone as owner
 $ repofe mizchi/repofe #=> ~/owner/repofe
 ```
