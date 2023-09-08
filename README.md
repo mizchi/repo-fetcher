@@ -4,14 +4,16 @@ Simple github repository fetcher
 
 ## Install
 
+Require deno
+
 ```
-$ deno install -A WIP
+$ deno install -A https://raw.githubusercontent.com/mizchi/repofe/main/repofe.ts
 ```
 
 ```bash
 ## Your repository root
 export REPOFE_ROOT=$HOME/repo # default
-## If repo owner match to owner, use REPOFE_OWNER_ROOT
+## If repo owner matches to owner, use REPOFE_OWNER_ROOT
 export REPOFE_OWNER=mizchi
 export REPOFE_OWNER_ROOT=$HOME/mizchi
 ```
@@ -28,13 +30,16 @@ $ repofe mizchi/repofe #=> ~/owner/repofe
 
 ### Connect
 
-CAUTION: it causes mv and create repo
+CAUTION: it causes mv and create github repo as public.
 
 ```bash
 $ repofe connect mylib
 # move to ~/owner/mylib
 # git remote add origin https://github.com/owner/mylib --public
 # gh repo create owner/mylib
+
+## Specify reponame
+$ repofe connect ../mylib repo-name
 ```
 
 ## LICENSE

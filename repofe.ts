@@ -65,13 +65,13 @@ function printCommandResult(output: Deno.CommandOutput) {
   }
 }
 
-async function connectRepo(dir: string) {
+async function connectRepo(dir: string, preferredName?: string) {
   if (!OWNER_ROOT) {
     console.error("[repofe] REPOFE_OWNER_ROOT is not set");
     Deno.exit(1);
   }
   // const info = getRepoInfo(input);
-  const repoName = dir.slice().split('/').pop();
+  const repoName = preferredName ?? dir.slice().split('/').pop();
   const destination = join(OWNER_ROOT as string, repoName as string);
   const origin = `https://github.com/${OWNER}/${repoName}`;
   {
@@ -129,5 +129,5 @@ if (input.includes("/")) {
 
 if (input === 'connect') {
   const cwd = Deno.cwd();
-  connectRepo(join(cwd, Deno.args[1]));
+  connectRepo(join(cwd, Deno.args[1], Deno.args[2]));
 }
