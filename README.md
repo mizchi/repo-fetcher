@@ -1,4 +1,4 @@
-# repofe
+# repo-fetcher
 
 Simple github repository fetcher inspired by ghq
 
@@ -6,24 +6,34 @@ Simple github repository fetcher inspired by ghq
 
 Require deno
 
+```bash
+$ deno install --allow-read --allow-write --allow-env --allow-sys --allow-run https://raw.githubusercontent.com/mizchi/repofe/main/repo.ts
 ```
-$ deno install -A https://raw.githubusercontent.com/mizchi/repofe/main/repofe.ts
+
+Simple usage
+```bash
+
 ```
 
 ```bash
 ## Your repository root
-export REPOFE_ROOT=$HOME/repo # default
-## If repo owner matches to owner, use REPOFE_OWNER_ROOT
-export REPOFE_OWNER=mizchi
-export REPOFE_OWNER_ROOT=$HOME/mizchi
+export REPO_FETCHER_ROOT=$HOME/repo # default
+
+ # If repo owner matches to owner, use REPO_FETCHER_OWNER_ROOT
+export REPO_FETCHER_OWNER=mizchi
+export REPO_FETCHER_OWNER_ROOT=$HOME/mizchi
 ```
 
 ### Clone
 
 ```bash
-$ repofe https://github.com/github/Spoon-Knife # => ~/repo/github/Spoon-Knife
+$ repo https://github.com/github/Spoon-Knife # => ~/repo/github/Spoon-Knife
+
 # clone as owner
-$ repofe https://github.com/owner/repo #=> ~/owner/repo
+$ repo https://github.com/owner/repo #=> ~/owner/repo
+
+# Partial checkout
+$ repo https://github.com/owner/repo/tree/main/dir dest # destdir
 ```
 
 ### Connect
@@ -31,13 +41,13 @@ $ repofe https://github.com/owner/repo #=> ~/owner/repo
 CAUTION: it causes mv and create github repo as public.
 
 ```bash
-$ repofe connect mylib
+$ repo connect mylib
 # move to ~/owner/mylib
 # git remote add origin https://github.com/owner/mylib --public
 # gh repo create owner/mylib
 
 ## Specify reponame
-$ repofe connect ../mylib repo-name
+$ repo connect ../mylib repo-name
 ```
 
 ## LICENSE
