@@ -1,11 +1,11 @@
 #!/usr/bin/env -S deno run -A
 
 type RepoInfo = {
-  owner: string,
-  repo: string,
-  branch: string,
-  dir: string,
-}
+  owner: string;
+  repo: string;
+  branch: string;
+  dir: string;
+};
 
 const HELP_TEXT = `
 Usage: repo <github-url> [dest]
@@ -22,22 +22,42 @@ Environment Variables:
     export REPO_FETCHER_OWNER_ROOT=$HOME/mizchi # clone if owner is you
 `;
 
-import { join, dirname } from "https://deno.land/std@0.201.0/path/mod.ts";
-import { $, cd } from "npm:zx@7.1.1";
-import { parse } from "https://deno.land/std@0.202.0/flags/mod.ts";
+import { join, dirname } from "jsr:@std/path@1.0.8";
+import { $, cd } from "npm:zx@8.3.0";
+import { parseArgs } from "node:util";
 
-const args = parse(Deno.args, {
-  alias: {
-    branch: "b",
-    root: "r",
-    help: 'h'
+const args = parseArgs({
+  args: Deno.args,
+  options: {
+    branch: {
+      short: "b",
+      type: "string",
+    },
+    root: {
+      type: "string",
+      short: "r",
+    },
+    help: {
+      type: "boolean",
+      short: "h",
+    },
+    public: {
+      type: "boolean",
+    },
+    private: {
+      type: "boolean",
+    },
   },
+  allowPositionals: true,
 });
 
 const OWNER = Deno.env.get("REPO_FETCHER_OWNER") as string | undefined;
-const OWNER_ROOT = Deno.env.get("REPO_FETCHER_OWNER_ROOT") as string | undefined;
-const REPO_ROOT = args.root ?? Deno.env.get("REPO_FETCHER_ROOT") as string;
-const HOME = Deno.env.get("HOME") as string;
+const OWNER_ROOT = Deno.env.get("REPO_FETCHER_OWNER_ROOT") as
+  | string
+  | undefined;
+const REPO_ROOT =
+  args.values.root ?? (Deno.env.get("REPO_FETCHER_ROOT") as string);
+const HOME = Deno.env.get("HOME") ?? (Deno.env.get("HOME_PATH") as string);
 
 function getDestByEnv(info: RepoInfo) {
   if (OWNER === info.owner && OWNER_ROOT) {
@@ -52,16 +72,26 @@ function getDestByEnv(info: RepoInfo) {
 function parseRepoUrl(url: string): RepoInfo {
   if (url.startsWith("https")) {
     const u = new URL(url);
-    const [, owner, repo, _tree, branch, ...paths] = u.pathname.split('/');
-    return { owner, repo, branch: branch ?? "main", dir: paths.join("/") };
+    const [, owner, repo, _tree, branch, ...paths] = u.pathname.split("/");
+    return {
+      owner,
+      repo: repo.replace(/\.git/, ""),
+      branch: branch ?? "main",
+      dir: paths.join("/"),
+    };
   }
   if (url.startsWith("git@")) {
-    const [, expr] = url.split(':');
-    const [owner, repo, _tree, branch, ...paths] = expr.split('/');
-    return { owner, repo: repo.replace(/\.git/, ""), branch: branch ?? "main", dir: paths.join("/") };
+    const [, expr] = url.split(":");
+    const [owner, repo, _tree, branch, ...paths] = expr.split("/");
+    return {
+      owner,
+      repo: repo.replace(/\.git/, ""),
+      branch: branch ?? "main",
+      dir: paths.join("/"),
+    };
   }
 
-  const [owner, repo, ...paths] = url.split('/');
+  const [owner, repo, ...paths] = url.split("/");
   return { owner, repo, branch: "main", dir: paths.join("/") };
 }
 
@@ -101,11 +131,11 @@ async function fetchRepo(input: string, manualDest?: string) {
       console.error(`[repo] can't sync: ${dest} is dirty repo`);
       Deno.exit(1);
     }
-    await $`git pull origin ${args.branch ?? info.branch}`;
+    await $`git pull origin ${args.values.branch ?? info.branch}`;
   } else {
     // use repository default branch
-    if (args.branch) {
-      await $`git clone ${gitUrl} ${dest} --depth 1 --branch ${args.branch}`;
+    if (args.values.branch) {
+      await $`git clone ${gitUrl} ${dest} --depth 1 --branch ${args.values.branch}`;
     } else {
       await $`git clone ${gitUrl} ${dest} --depth 1`;
     }
@@ -118,42 +148,41 @@ async function manageRepo(dir: string, preferredName?: string) {
     console.error("[repo] REPO_FETCHER_OWNER_ROOT is not set");
     Deno.exit(1);
   }
-  const repoName = preferredName ?? dir.slice().split('/').pop();
+  const repoName = preferredName ?? dir.slice().split("/").pop();
   const dest = join(OWNER_ROOT as string, repoName as string);
   const origin = `https://github.com/${OWNER}/${repoName}`;
   await Deno.mkdir(OWNER_ROOT as string, { recursive: true });
   await $`mv ${dir} ${dest}`;
 
   // ensure git init
-  if (!await Deno.stat(join(dest, '.git')).catch(() => null)) {
+  if (!(await Deno.stat(join(dest, ".git")).catch(() => null))) {
     await $`git init`;
   }
   await $`git remote add origin ${origin}`;
-  console.log('[repo:created]', dest, '->', origin);
+  console.log("[repo:created]", dest, "->", origin);
 
   const hasRemote = await $`git remote -v`.then(() => true).catch(() => false);
-  if (!hasRemote && args.private) {
+  if (!hasRemote && args.values.private) {
     await $`gh repo create ${OWNER}/${repoName} --private --confirm`;
   }
-  if (!hasRemote && args.public) {
+  if (!hasRemote && args.values.public) {
     await $`gh repo create ${OWNER}/${repoName} --public --confirm`;
   }
   Deno.exit(0);
 }
 
-if (args.help || args._.length === 0) {
+if (args.values.help || args.positionals.length === 0) {
   console.log(HELP_TEXT);
   Deno.exit(0);
 }
 
-const cmd = args._[0] as string | undefined;
+const cmd = args.positionals[0] as string | undefined;
 if (cmd?.includes("/")) {
-  const dest = args._[1] as string | undefined;
+  const dest = args.positionals[1] as string | undefined;
   await fetchRepo(cmd, dest);
 }
 
-if (cmd === 'manage') {
+if (cmd === "manage") {
   const cwd = Deno.cwd();
   await manageRepo(join(cwd, Deno.args[1], Deno.args[2]));
 }
-

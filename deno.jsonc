@@ -1,4 +1,7 @@
 {
+  "name": "@mizchi/repo",
+  "version": "0.1.0",
+  "exports": "./repo.ts",
   "tasks": {
     "dev": "deno run --watch main.ts"
   }

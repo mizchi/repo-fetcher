@@ -41,13 +41,13 @@ $ repo https://github.com/owner/repo/tree/main/dir dest # destdir
 CAUTION: it causes mv and create github repo as public.
 
 ```bash
-$ repo connect mylib
+$ repo manage mylib
 # move to ~/owner/mylib
 # git remote add origin https://github.com/owner/mylib --public
 # gh repo create owner/mylib
 
 ## Specify reponame
-$ repo connect ../mylib repo-name
+$ repo manage ../mylib repo-name
 ```
 
 ## LICENSE
