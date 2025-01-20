@@ -91,8 +91,9 @@ function parseRepoUrl(url: string): RepoInfo {
     };
   }
 
-  const [owner, repo, ...paths] = url.split("/");
-  return { owner, repo, branch: "main", dir: paths.join("/") };
+  const [repoExpr, pathExpr] = url.split(":");
+  const [owner, repo, ...paths] = repoExpr.split("/");
+  return { owner, repo, branch: "main", dir: pathExpr ?? paths.join("/") };
 }
 
 async function fetchRepo(input: string, manualDest?: string) {
@@ -177,12 +178,12 @@ if (args.values.help || args.positionals.length === 0) {
 }
 
 const cmd = args.positionals[0] as string | undefined;
-if (cmd?.includes("/")) {
-  const dest = args.positionals[1] as string | undefined;
-  await fetchRepo(cmd, dest);
-}
-
 if (cmd === "manage") {
   const cwd = Deno.cwd();
   await manageRepo(join(cwd, Deno.args[1], Deno.args[2]));
+}
+
+if (cmd?.includes("/")) {
+  const dest = args.positionals[1] as string | undefined;
+  await fetchRepo(cmd, dest);
 }
